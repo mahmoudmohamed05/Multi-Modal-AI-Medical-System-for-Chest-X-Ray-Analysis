@@ -1,0 +1,37 @@
+[project]
+name = "multimodel-medical-ai-system"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "zeina", email = "zeinaelsadek25@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "chromadb>=1.5.9",
+    "fastapi>=0.162.0",
+    "numpy>=2.5.4",
+    "openai>=3.37.0",
+    "pillow>=13.0.0",
+    "pydantic-settings>=2.16.1",
+    "pymupdf>=2.0",
+    "python-dotenv>=1.2.4",
+    "python-multipart>=0.0.32",
+    "rank-bm25>=0.2.2",
+    "sentence-transformers>=6.2.0",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[project.scripts]
+multimodel-medical-ai-system = "multimodel_medical_ai_system:main"
+
+[build-system]
+requires = ["uv_build>=0.12.10,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.1.1",
+    "ruff>=0.17.2",
+]
