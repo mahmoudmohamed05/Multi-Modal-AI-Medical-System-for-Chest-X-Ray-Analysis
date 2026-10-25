@@ -9,3 +9,8 @@ data/bm25_index/
 artifacts/deep_learning_model/*
 !artifacts/deep_learning_model/.gitkeep
 .DS_Store
+
+.env
+
+.env.*
+!.env.example
