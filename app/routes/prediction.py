@@ -52,7 +52,6 @@ def run_prediction(data: bytes) -> dict:
 
     except FileNotFoundError as exc:
         logger.exception("Model weights file not found")
-
         raise HTTPException(
             status_code=503,
             detail=str(exc),
@@ -62,11 +61,7 @@ def run_prediction(data: bytes) -> dict:
         raise
 
     except Exception as exc:
-        logger.exception(
-            "Image prediction failed: %s",
-            exc,
-        )
-
+        logger.exception("Image prediction failed: %s", exc)
         raise HTTPException(
             status_code=503,
             detail="Image prediction failed. Check server logs.",
@@ -100,11 +95,18 @@ async def predict_and_answer(
     )
 
     context = (
-        "Automated research-model output, not a confirmed diagnosis: "
-        f"class={prediction['label']}; "
-        "estimated pneumonia probability="
-        f"{prediction['probability_pneumonia']:.4f}. "
-        "Use this only as uncertain context and do not treat it as clinical proof."
+        "IMAGE PROCESSING STATUS: An image was uploaded to the "
+        "prediction endpoint and processed by the image-classification "
+        "service. The language model receives the prediction metadata, "
+        "not the original image pixels.\n"
+        f"Model name: {prediction['model_name']}\n"
+        f"Predicted class: {prediction['label']}\n"
+        "Estimated pneumonia probability: "
+        f"{prediction['probability_pneumonia']:.4f}\n"
+        f"Classification threshold: {prediction['threshold']}\n"
+        "Interpretation: This is an automated research-model output, "
+        "not a confirmed diagnosis. It does not independently rule out "
+        "pneumonia. Do not claim to have visually inspected the image."
     )
 
     try:
