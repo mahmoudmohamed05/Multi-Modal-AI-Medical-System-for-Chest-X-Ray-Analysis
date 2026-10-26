@@ -14,3 +14,5 @@ artifacts/deep_learning_model/*
 
 .env.*
 !.env.example
+*.zip
+mlflow_artifacts.zip
