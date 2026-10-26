@@ -9,3 +9,24 @@ data/bm25_index/
 artifacts/deep_learning_model/*
 !artifacts/deep_learning_model/.gitkeep
 .DS_Store
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+.venv312/
+__pycache__/
+*.py[cod]
+
+# Editor settings
+.vscode/
+
+# Local RAG indexes and test data
+data/chroma/
+data/bm25_index/
+data/test_xray.jpeg
+data/
+artifacts/DeepLearning_Files/*.weights.h5
+artifacts/DeepLearning_Files/mlflow.db
