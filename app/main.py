@@ -1,7 +1,7 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Path
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
@@ -28,6 +28,16 @@ async def lifespan(app: FastAPI):
 def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(title=settings.app_name, version="1.0.0", lifespan=lifespan)
+
+    from pathlib import Path
+    from fastapi.responses import FileResponse
+
+    _UI = Path(__file__).parent / "static" / "index.html"
+
+    @app.get("/", include_in_schema=False)
+    def ui():
+        return FileResponse(_UI)
+
     app.add_middleware(
         CORSMiddleware, allow_origins=settings.cors_origins,
         allow_methods=["*"], allow_headers=["*"],
