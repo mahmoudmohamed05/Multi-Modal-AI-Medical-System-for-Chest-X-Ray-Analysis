@@ -2,7 +2,7 @@ import hashlib
 from app.config import get_settings
 from app.rag.document_loader import load_documents, chunk_text
 from app.rag.embeddings import embed_texts
-from app.rag.vector_store import upsert_chunks
+from app.rag.vectore_store import upsert_chunks
 from app.rag.bm25_store import save_corpus
 
 

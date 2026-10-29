@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chest X-ray Assistant</title>
+<style>
+:root{
+  --bg:#eef5fb;--bg2:#e2effa;--card:rgba(255,255,255,.82);--solid:#fff;--text:#0f2540;--muted:#5b7089;--line:#d5e3f1;
+  --blue:#1d6fe8;--blue2:#0a4fb8;--teal:#12b5c9;--sky:#cfe8ff;
+  --ok:#0f9d6b;--okbg:#e0f7ee;--bad:#d6394a;--badbg:#fde8ea;--warn:#8a5a00;--warnbg:#fff3d6;
+  --shadow:0 10px 30px rgba(29,111,232,.12);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#08121f;--bg2:#0b1c31;--card:rgba(17,32,54,.78);--solid:#112036;--text:#e6f0fb;--muted:#92a8c2;--line:#223a5a;
+  --blue:#4b94ff;--blue2:#2f78e6;--teal:#2dd4e6;--sky:#16355c;
+  --ok:#3fd7a1;--okbg:#0f3326;--bad:#ff7d8b;--badbg:#3b1820;--warn:#f5c66b;--warnbg:#33290f;--shadow:0 10px 30px rgba(0,0,0,.35);
+}}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;color:var(--text);font:15px/1.6 "Segoe UI",system-ui,-apple-system,Tahoma,sans-serif;min-height:100vh;
+  background:radial-gradient(900px 500px at 85% -10%,var(--sky),transparent 60%),radial-gradient(700px 400px at -10% 30%,rgba(18,181,201,.14),transparent 60%),linear-gradient(var(--bg),var(--bg2));background-attachment:fixed}
+/* floating background orbs */
+.orb{position:fixed;border-radius:50%;filter:blur(60px);opacity:.35;z-index:-1;animation:float 14s ease-in-out infinite}
+.orb.a{width:280px;height:280px;background:var(--blue);top:8%;left:-80px}
+.orb.b{width:240px;height:240px;background:var(--teal);bottom:6%;right:-60px;animation-delay:-6s}
+@keyframes float{50%{transform:translate(30px,-40px) scale(1.08)}}
+
+/* hero */
+.hero{max-width:1120px;margin:0 auto;padding:26px 18px 14px;display:flex;flex-wrap:wrap;gap:14px 24px;align-items:center;justify-content:space-between;animation:rise .7s both}
+.brand{display:flex;gap:14px;align-items:center}
+.logo{width:54px;height:54px;border-radius:16px;background:linear-gradient(135deg,var(--blue),var(--teal));display:grid;place-items:center;box-shadow:0 8px 22px rgba(29,111,232,.35);animation:breathe 4s ease-in-out infinite}
+.logo svg{width:32px;height:32px}
+@keyframes breathe{50%{transform:scale(1.07);box-shadow:0 10px 28px rgba(18,181,201,.5)}}
+h1{margin:0;font-size:22px;letter-spacing:.2px}
+.sub{margin:0;color:var(--muted);font-size:13px}
+.pills{display:flex;gap:8px;flex-wrap:wrap}
+.pill{display:flex;align-items:center;gap:7px;font-size:12px;padding:4px 11px;border-radius:99px;background:var(--card);border:1px solid var(--line);color:var(--muted);backdrop-filter:blur(8px)}
+.pill i{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.pill.on i{background:var(--ok);box-shadow:0 0 0 0 var(--ok);animation:ping 2s infinite}
+.pill.on{color:var(--ok)} .pill.off{color:var(--bad)} .pill.off i{background:var(--bad)}
+@keyframes ping{70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+
+/* ECG strip */
+.ecg{max-width:1120px;margin:0 auto;padding:0 18px;height:34px;overflow:hidden;opacity:.8}
+.ecg svg{width:200%;height:34px;animation:slide 6s linear infinite}
+.ecg path{fill:none;stroke:url(#g);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@keyframes slide{to{transform:translateX(-50%)}}
+
+main{max-width:1120px;margin:0 auto;padding:10px 18px 34px;display:grid;grid-template-columns:350px 1fr;gap:18px}
+@media (max-width:860px){main{grid-template-columns:1fr}}
+.card{background:var(--card);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:var(--shadow);animation:rise .7s both}
+.card:nth-child(2){animation-delay:.12s}
+@keyframes rise{from{opacity:0;transform:translateY(18px)}}
+.card h2{margin:0 0 12px;font-size:14px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px}
+.card h2:before{content:"";width:4px;height:14px;border-radius:2px;background:linear-gradient(var(--blue),var(--teal))}
+
+/* upload */
+#drop{border:2px dashed var(--line);border-radius:16px;padding:30px 12px;text-align:center;color:var(--muted);cursor:pointer;transition:.25s;background:linear-gradient(180deg,transparent,rgba(29,111,232,.05))}
+#drop:hover,#drop.over{border-color:var(--blue);color:var(--blue);transform:translateY(-2px);background:rgba(29,111,232,.08)}
+#drop svg{width:46px;height:46px;margin-bottom:8px;animation:bob 2.6s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-6px)}}
+.stage{position:relative;border-radius:16px;overflow:hidden;background:#000;display:none;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.stage img{display:block;width:100%;max-height:310px;object-fit:contain}
+.scan{position:absolute;left:0;right:0;height:60px;top:-60px;background:linear-gradient(transparent,rgba(45,212,230,.55),transparent);border-bottom:2px solid var(--teal);opacity:0}
+.stage.busy .scan{opacity:1;animation:scan 1.6s ease-in-out infinite}
+@keyframes scan{to{top:100%}}
+.stage.busy:after{content:"Analyzing…";position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:12px;color:#fff;background:rgba(10,79,184,.8);padding:3px 12px;border-radius:99px}
+.corner{position:absolute;width:18px;height:18px;border:2px solid var(--teal)}
+.c1{top:8px;left:8px;border-right:0;border-bottom:0}.c2{top:8px;right:8px;border-left:0;border-bottom:0}
+.c3{bottom:8px;left:8px;border-right:0;border-top:0}.c4{bottom:8px;right:8px;border-left:0;border-top:0}
+
+/* result */
+#result{margin-top:16px;display:none;animation:pop .5s cubic-bezier(.2,1.3,.4,1) both}
+@keyframes pop{from{opacity:0;transform:scale(.92)}}
+.gauge-wrap{display:flex;align-items:center;gap:16px}
+.gauge{position:relative;width:112px;height:112px;flex:none}
+.gauge svg{transform:rotate(-90deg)}
+.gauge .trk{stroke:var(--line)}
+.gauge .val{stroke-linecap:round;transition:stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1),stroke .4s}
+.gauge b{position:absolute;inset:0;display:grid;place-items:center;font-size:21px;font-weight:700}
+.badge{display:inline-block;font-weight:800;letter-spacing:.8px;padding:5px 14px;border-radius:10px;font-size:15px}
+.badge.NORMAL{background:var(--okbg);color:var(--ok)}
+.badge.PNEUMONIA{background:var(--badbg);color:var(--bad)}
+.small{font-size:12px;color:var(--muted);margin-top:6px}
+.warn{background:var(--warnbg);color:var(--warn);border-radius:12px;padding:9px 12px;font-size:12.5px;margin-top:12px}
+.btn{font:inherit;border:1px solid var(--line);background:var(--solid);color:var(--text);border-radius:12px;padding:8px 14px;cursor:pointer;transition:.2s}
+.btn:hover{border-color:var(--blue);color:var(--blue)}
+.btn.primary{background:linear-gradient(135deg,var(--blue),var(--teal));border:0;color:#fff;font-weight:600;padding:0 22px;box-shadow:0 6px 16px rgba(29,111,232,.35)}
+.btn.primary:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(29,111,232,.45);color:#fff}
+.btn:disabled{opacity:.5;cursor:default;transform:none}
+#clear{margin-top:12px;display:none}
+
+/* chat */
+#chat{display:flex;flex-direction:column;min-height:540px}
+#log{flex:1;overflow:auto;display:flex;flex-direction:column;gap:12px;padding:2px 4px 10px;max-height:58vh}
+.msg{padding:11px 15px;border-radius:18px;max-width:90%;white-space:pre-wrap;word-wrap:break-word;animation:slidein .35s both;unicode-bidi:plaintext}
+@keyframes slidein{from{opacity:0;transform:translateY(10px)}}
+.msg.user{align-self:flex-end;color:#fff;background:linear-gradient(135deg,var(--blue),var(--blue2));border-bottom-right-radius:5px}
+.msg.bot{align-self:flex-start;background:var(--solid);border:1px solid var(--line);border-bottom-left-radius:5px}
+.msg.err{align-self:flex-start;background:var(--badbg);color:var(--bad)}
+.dots{display:inline-flex;gap:5px;padding:4px 0}
+.dots i{width:8px;height:8px;border-radius:50%;background:var(--teal);animation:dot 1.1s infinite}
+.dots i:nth-child(2){animation-delay:.18s}.dots i:nth-child(3){animation-delay:.36s}
+@keyframes dot{40%{transform:translateY(-6px);opacity:.4}}
+details{margin-top:10px;font-size:13px;white-space:normal}
+summary{cursor:pointer;color:var(--blue);font-weight:600}
+.src{border-left:3px solid var(--teal);padding:4px 10px;margin-top:8px;background:rgba(18,181,201,.07);border-radius:0 8px 8px 0}
+.src b{font-size:12px}
+.empty{margin:auto;text-align:center;color:var(--muted);padding:20px}
+.empty svg{width:70px;height:70px;animation:bob 3s ease-in-out infinite}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px}
+.chip{font:inherit;font-size:13px;padding:6px 13px;border-radius:99px;border:1px solid var(--line);background:var(--solid);color:var(--blue);cursor:pointer;transition:.2s}
+.chip:hover{background:var(--blue);color:#fff;transform:translateY(-2px)}
+form{display:flex;gap:10px;margin-top:10px;align-items:stretch}
+textarea{flex:1;font:inherit;color:var(--text);background:var(--solid);border:1px solid var(--line);border-radius:14px;padding:10px 14px;resize:none;transition:.2s;unicode-bidi:plaintext}
+textarea:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 4px rgba(29,111,232,.15)}
+.foot{text-align:center;font-size:12px;color:var(--muted);padding:0 18px 24px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.msg.bot { white-space: normal; }
+.msg.bot p { margin: 0 0 8px; }
+.msg.bot p:last-child { margin-bottom: 0; }
+.msg.bot ul, .msg.bot ol { margin: 4px 0 8px 18px; padding: 0; }
+.msg.bot strong { font-weight: 700; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+<div class="orb a"></div><div class="orb b"></div>
+
+<header class="hero">
+  <div class="brand">
+    <div class="logo">
+      <svg viewBox="0 0 32 32" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M16 4v12"/><path d="M16 12c-2-3-5-4-7-2-3 3-4 9-3 14 .4 2 3 2.500 5 1l5-4"/><path d="M16 12c2-3 5-4 7-2 3 3 4 9 3 14-.4 2-3 2.500-5 1l-5-4"/>
+      </svg>
+    </div>
+    <div>
+      <h1>Chest X-ray Assistant</h1>
+      <p class="sub">AI-powered pneumonia screening &amp; evidence-based Q&amp;A</p>
+    </div>
+  </div>
+  <div class="pills" id="pills"></div>
+</header>
+
+<div class="ecg" aria-hidden="true">
+  <svg viewBox="0 0 1200 34" preserveAspectRatio="none">
+    <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#1d6fe8"/><stop offset="1" stop-color="#12b5c9"/></linearGradient></defs>
+    <path d="M0 17H80l10-4 8 4h40l8-14 10 28 10-14h60l10-4 8 4h80l8-14 10 28 10-14h60l10-4 8 4h80l8-14 10 28 10-14h60l10-4 8 4h80l8-14 10 28 10-14h60l10-4 8 4h80l8-14 10 28 10-14h60l10-4 8 4h80"/>
+  </svg>
+</div>
+
+<main>
+  <section class="card">
+    <h2>X-ray image</h2>
+    <div id="drop">
+      <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.200" stroke-linecap="round" stroke-linejoin="round"><path d="M24 32V10M16 18l8-8 8 8"/><path d="M8 30v6a4 4 0 0 0 4 4h24a4 4 0 0 0 4-4v-6"/></svg>
+      <div><b>Drop a chest X-ray here</b></div>
+      <div class="small">or click to browse · PNG / JPEG</div>
+    </div>
+    <input type="file" id="file" accept="image/png,image/jpeg" hidden>
+    <div class="stage" id="stage">
+      <img id="preview" alt="X-ray preview">
+      <div class="scan"></div>
+      <span class="corner c1"></span><span class="corner c2"></span><span class="corner c3"></span><span class="corner c4"></span>
+    </div>
+    <div id="result">
+      <div class="gauge-wrap">
+        <div class="gauge">
+          <svg width="112" height="112" viewBox="0 0 112 112">
+            <circle class="trk" cx="56" cy="56" r="48" fill="none" stroke-width="10"/>
+            <circle class="val" id="arc" cx="56" cy="56" r="48" fill="none" stroke-width="10" stroke-dasharray="301.6" stroke-dashoffset="301.6"/>
+          </svg>
+          <b id="pct">0%</b>
+        </div>
+        <div>
+          <span class="badge" id="label"></span>
+          <div class="small">Probability of pneumonia</div>
+          <div class="small" id="modeltxt"></div>
+        </div>
+      </div>
+      <div class="warn" id="disc"></div>
+    </div>
+    <button class="btn" id="clear">Remove image</button>
+  </section>
+
+  <section class="card" id="chat">
+    <h2>Clinical Q&amp;A</h2>
+    <div id="log">
+      <div class="empty">
+        <svg viewBox="0 0 64 64" fill="none" stroke="var(--blue)" stroke-width="2.500" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14h44a4 4 0 0 1 4 4v24a4 4 0 0 1-4 4H30l-10 9v-9H10a4 4 0 0 1-4-4V18a4 4 0 0 1 4-4z"/><path d="M20 30h6l3-6 5 12 3-6h7" stroke="var(--teal)"/></svg>
+        <div><b>Ask anything about the case</b></div>
+        <div class="small">Upload an X-ray first to get an automated screening result.</div>
+        <div class="chips">
+          <button class="chip" type="button">Is this image normal or pneumonia?</button>
+          <button class="chip" type="button">What are the first-line treatment options for pneumonia?</button>
+          <button class="chip" type="button">Which findings suggest pneumonia on a chest X-ray?</button>
+        </div>
+      </div>
+    </div>
+    <form id="form">
+      <textarea id="q" rows="2" maxlength="2000" placeholder="Type your question…  (Enter = send · Shift+Enter = new line)"></textarea>
+      <button class="btn primary" id="send" type="submit">Send ➤</button>
+    </form>
+  </section>
+</main>
+<div class="foot">Decision-support prototype · automated screening score, not a diagnosis · always confirm with a radiologist/clinician</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let file = null, prediction = null;   // prediction is reused for follow-up questions
+const C = 2 * Math.PI * 48;
+
+// ---- health pills ----
+fetch('/health').then(r => r.json()).then(h => {
+  const items = [['Classifier', h.classifier_weights_present], ['Documents ' + h.indexed_chunks_bm25, h.indexed_chunks_bm25 > 0], ['LLM', h.llm_configured]];
+  $('pills').replaceChildren(...items.map(([t, ok]) => {
+    const s = document.createElement('span'); s.className = 'pill ' + (ok ? 'on' : 'off');
+    const i = document.createElement('i'); s.append(i, t); return s;
+  }));
+}).catch(() => {});
+
+// ---- file picking ----
+const drop = $('drop'), input = $('file'), stage = $('stage');
+drop.onclick = () => input.click();
+input.onchange = () => setFile(input.files[0]);
+['dragover','dragenter'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.add('over'); }));
+['dragleave','drop'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', ev => setFile(ev.dataTransfer.files[0]));
+$('clear').onclick = () => setFile(null);
+
+function setFile(f) {
+  file = f || null; prediction = null; input.value = '';
+  $('result').style.display = 'none';
+  $('arc').style.strokeDashoffset = C;
+  $('clear').style.display = file ? 'inline-block' : 'none';
+  if (file) { $('preview').src = URL.createObjectURL(file); stage.style.display = 'block'; drop.style.display = 'none'; }
+  else { stage.style.display = 'none'; drop.style.display = ''; }
+}
+
+function showPrediction(p) {
+  prediction = p;
+  const res = $('result'); res.style.display = 'none'; void res.offsetWidth; res.style.display = 'block';
+  const l = $('label'); l.textContent = p.label; l.className = 'badge ' + p.label;
+  const pct = p.probability_pneumonia * 100;
+  const arc = $('arc');
+  arc.style.stroke = p.label === 'PNEUMONIA' ? 'var(--bad)' : 'var(--ok)';
+  requestAnimationFrame(() => requestAnimationFrame(() => arc.style.strokeDashoffset = C * (1 - p.probability_pneumonia)));
+  // count-up number
+  const t0 = performance.now();
+  (function tick(now) {
+    const k = Math.min(1, (now - t0) / 1100);
+    $('pct').textContent = (pct * (1 - Math.pow(1 - k, 3))).toFixed(1) + '%';
+    if (k < 1) requestAnimationFrame(tick);
+  })(t0);
+  $('modeltxt').textContent = p.model_name + ' · threshold ' + p.threshold;
+  $('disc').textContent = p.disclaimer;
+}
+
+// ---- chat ----
+function add(cls, text) {
+  const log = $('log'); log.querySelector('.empty')?.remove();
+  const d = document.createElement('div'); d.className = 'msg ' + cls;
+  if (text) d.textContent = text;
+  log.appendChild(d); log.scrollTop = log.scrollHeight; return d;
+}
+function typing() {
+  const d = add('bot'); const w = document.createElement('span'); w.className = 'dots';
+  w.append(document.createElement('i'), document.createElement('i'), document.createElement('i'));
+  d.appendChild(w); return d;
+}
+function addSources(div, sources) {
+  if (!sources?.length) return;
+  const det = document.createElement('details');
+  const sm = document.createElement('summary'); sm.textContent = '📚 Sources (' + sources.length + ')'; det.appendChild(sm);
+  sources.forEach((s, i) => {
+    const d = document.createElement('div'); d.className = 'src';
+    const b = document.createElement('b'); b.textContent = '[S' + (i + 1) + '] ' + s.source + (s.page != null ? ' · p.' + s.page : '');
+    const t = document.createElement('div'); t.textContent = s.excerpt;
+    d.append(b, t); det.appendChild(d);
+  });
+  div.appendChild(det);
+}
+async function call(question) {
+  if (file && !prediction) {                       // first question with a new image
+    const fd = new FormData(); fd.append('file', file); fd.append('question', question);
+    stage.classList.add('busy');
+    try {
+      const r = await fetch('/api/predictions/explain', { method: 'POST', body: fd });
+      const j = await r.json(); if (!r.ok) throw j;
+      showPrediction(j.prediction); return j.chat;
+    } finally { stage.classList.remove('busy'); }
+  }
+  const body = { question };                       // follow-ups reuse the stored prediction
+  if (prediction) body.prediction = prediction;
+  const r = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const j = await r.json(); if (!r.ok) throw j;
+  return j;
+}
+function errText(e) {
+  if (typeof e?.detail === 'string') return e.detail;
+  if (Array.isArray(e?.detail)) return e.detail.map(x => x.msg).join('; ');
+  return 'Something went wrong. Check the server terminal.';
+}
+async function ask(q) {
+  if (q.length < 3) return;
+  $('q').value = ''; add('user', q);
+  const wait = typing(); $('send').disabled = true;
+  try {
+    const c = await call(q);
+    wait.innerHTML = marked.parse(c.answer); addSources(wait, c.sources);
+  } catch (e) { wait.className = 'msg err'; wait.textContent = errText(e); }
+  finally { $('send').disabled = false; $('q').focus(); $('log').scrollTop = $('log').scrollHeight; }
+}
+$('form').onsubmit = ev => { ev.preventDefault(); ask($('q').value.trim()); };
+$('q').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('form').requestSubmit(); } });
+document.querySelectorAll('.chip').forEach(c => c.onclick = () => ask(c.textContent));
+</script>
+</body>
+</html>

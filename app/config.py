@@ -19,7 +19,16 @@ class Settings(BaseSettings):
     final_top_k: int = 6
     rrf_k: int = 60
     max_upload_mb: int = 15
+  # --- Chest X-ray classifier (DenseNet121 + cross-attention, from the notebook) ---
+    model_weights_path: Path = Path("artifacts/DeepLearning_Files/densenet121_cross_attention.weights.h5")
+    decision_threshold: float = 0.5   # notebook evaluated at 0.5
+    max_image_mb: int = 10
+    max_image_pixels: int = 50_000_000
+    preload_model: bool = False       # True = load TensorFlow model at startup
 
+    # --- API ---
+    cors_origins: list[str] = ["*"]
+    admin_api_key: str = ""           # if set, required (X-API-Key) for document upload/ingest
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
 

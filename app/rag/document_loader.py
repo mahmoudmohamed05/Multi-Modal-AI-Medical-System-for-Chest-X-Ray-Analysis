@@ -1,6 +1,5 @@
 from pathlib import Path
-import fitz
-
+import pymupdf as fitz
 
 SUPPORTED_EXTENSIONS = {".pdf", ".txt", ".md"}
 

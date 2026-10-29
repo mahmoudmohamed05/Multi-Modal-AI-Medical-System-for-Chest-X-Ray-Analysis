@@ -1,6 +1,6 @@
 from app.config import get_settings
 from app.rag.embeddings import embed_query
-from app.rag.vector_store import semantic_search
+from app.rag.vectore_store import semantic_search
 from app.rag.bm25_store import bm25_search
 
 
